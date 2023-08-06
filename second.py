@@ -87,7 +87,8 @@ lk_params = dict(
 )
 color = np.random.randint(0, 255, (100, 3))
 
-for filename in listdir("E:/Image Tracking/videos/"):
+cv.namedWindow('Window', cv.WINDOW_NORMAL)
+for filename in listdir("C:/Users/rorla/Desktop/Boomerang-Tracking-V2/videos/"):
     #Make sure the program only runs on video files, if we use a different format just change it here as
     #long as opencv supports it 
     if filename.endswith(".MP4") or filename.endswith(".mp4"):
@@ -97,7 +98,7 @@ for filename in listdir("E:/Image Tracking/videos/"):
 
         #Create a window that is scaled to monitor size, not set to the actual size of the video being
         #used
-        cv.namedWindow('Window', cv.WINDOW_NORMAL)
+  
         cap = cv.VideoCapture(f"videos/{filename}")
         ret, frame = cap.read()
         
@@ -115,7 +116,7 @@ for filename in listdir("E:/Image Tracking/videos/"):
                 break
 
             #Utilize Gaussain Blurring to decrease noise but also minimize the effect of lighting on the algorithm
-            frame = cv.GaussianBlur(frame, (15,15), 3)
+            # frame = cv.GaussianBlur(frame, (15,15), 3)
 
             #Invert the BGR image, so now we want to mask for Cyan instead of red. Higher Contrast
             bgr_inv = ~frame
@@ -130,6 +131,7 @@ for filename in listdir("E:/Image Tracking/videos/"):
             # mask = cv.inRange(hsv_inv, np.array([90 - 10, 70, 50]), np.array([90 + 10, 255, 255]))
             #Apply mask created by the bounds to the original frame
             final = cv.bitwise_and(frame, frame, mask=mask)
+            # cv.imshow('Window', final)
 
             #Convert back to BGR colorspace (Might not be needed)
             prvs = cv.cvtColor(final, cv.COLOR_HSV2BGR)
@@ -155,15 +157,16 @@ for filename in listdir("E:/Image Tracking/videos/"):
             #Here we try and do some calculations to only save contours that include the boomerang
             for c in contours:
                 M = cv.moments(c)
+                # goodcontours.append(c)
 
                 #This checks to see if the area of the contour is above a certain amount, helps reduce the noise
                 #or not boomerang stuff that makes it through all the earlier image processing
-                if M['m00'] > 120:
+                if M['m00'] > 30:
                     x, y, w, h = cv.boundingRect(c)
 
                     #Checks to see if the width and height of the contour are within an acceptable range before
                     #accepting it. Can be tweaked as well
-                    if w < 50 and h < 60:
+                    if w < 30 and h < 30:
                         goodcontours.append(c)
 
                         #Compute the cetner of the contour with the moments, and then store those to the centers
@@ -181,28 +184,26 @@ for filename in listdir("E:/Image Tracking/videos/"):
             if keyboard == 'q' or keyboard == 27:
                 break
 
-        # normalizedcenters = []   
+        normalizedcenters = []   
 
-        # #Initialize the origin for the data to be the first contour drawn (typically where the boomerang was thrown from)
-        # origin = centers[0]
+        #Initialize the origin for the data to be the first contour drawn (typically where the boomerang was thrown from)
+        origin = centers[0]
 
-        # #Go through every data point in centers, and compute what the distance is in real-world units (meters)
-        # #from the approximation received from the getDistance function
-        # for c in centers:
-        #     a = list(map(int.__sub__, list(origin), list(c)))
-        #     b = np.array(a) * worlddistance / distance
-        #     normalizedcenters.append(tuple(b))
+        #Go through every data point in centers, and compute what the distance is in real-world units (meters)
+        #from the approximation received from the getDistance function
+        for c in centers:
+            a = list(map(int.__sub__, list(origin), list(c)))
+            b = np.array(a) * worlddistance / distance
+            normalizedcenters.append(tuple(b))
 
-        # #Open a csv file in the results folder and write the data to the file, which has the same name as the video
-        # with open(f'results/{filename}.csv', 'w') as the_file:
-        #     writer = csv.writer(the_file)
-        #     for row in normalizedcenters:
-        #         writer.writerow(row)
-        #     the_file.flush()
+        #Open a csv file in the results folder and write the data to the file, which has the same name as the video
+        with open(f'results/{filename}.csv', 'w') as the_file:
+            writer = csv.writer(the_file)
+            for row in normalizedcenters:
+                writer.writerow(row)
+            the_file.flush()
 
 cv.destroyAllWindows()
-
-
 
             # ret, frame2 = cap.read()
             # if not ret:

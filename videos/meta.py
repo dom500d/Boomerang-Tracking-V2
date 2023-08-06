@@ -1,8 +1,17 @@
-import ffmpeg
-import sys
-from pprint import pprint # for printing Python dictionaries in a human-readable way
+from os import listdir
 
-# read the audio/video file from the command line arguments
-media_file = sys.argv[1]
-# uses ffprobe command to extract all possible metadata from the media file
-pprint(ffmpeg.probe(media_file)["streams"])
+for filename in listdir("UWB/"):
+    with open(f'UWB/{filename}', 'r') as uwb:
+        uwbData = uwb.readlines()
+    xyTime = []
+    for x in uwbData:
+        g = x.split(",")
+        if g[2] == 'nan':
+            pass
+        if g[3] == 'nan':
+            pass
+        xyTime.append([g[2], g[3], g[5].replace("\n", "")])
+    print(filename)
+    print("\n")
+    print(xyTime)
+    
