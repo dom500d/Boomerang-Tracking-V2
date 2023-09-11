@@ -114,7 +114,8 @@ lk_params = dict(
 color = np.random.randint(0, 255, (100, 3))
 cv.namedWindow('Window', cv.WINDOW_NORMAL)
 
-for filename in listdir("E:/Image Tracking/videos/"):
+cv.namedWindow('Window', cv.WINDOW_NORMAL)
+for filename in listdir("C:/Users/rorla/Desktop/Boomerang-Tracking-V2/videos/"):
     #Make sure the program only runs on video files, if we use a different format just change it here as
     #long as opencv supports it 
     if filename.endswith(".MP4") or filename.endswith(".mp4"):
@@ -149,7 +150,7 @@ for filename in listdir("E:/Image Tracking/videos/"):
                 break
 
             #Utilize Gaussain Blurring to decrease noise but also minimize the effect of lighting on the algorithm
-            frame = cv.GaussianBlur(frame, (15,15), 3)
+            # frame = cv.GaussianBlur(frame, (15,15), 3)
 
             #Invert the BGR image, so now we want to mask for Cyan instead of red. Higher Contrast
             bgr_inv = ~frame
@@ -164,6 +165,7 @@ for filename in listdir("E:/Image Tracking/videos/"):
             # mask = cv.inRange(hsv_inv, np.array([90 - 10, 70, 50]), np.array([90 + 10, 255, 255]))
             #Apply mask created by the bounds to the original frame
             final = cv.bitwise_and(frame, frame, mask=mask)
+            # cv.imshow('Window', final)
 
             #Convert back to BGR colorspace (Might not be needed)
             prvs = cv.cvtColor(final, cv.COLOR_HSV2BGR)
@@ -189,15 +191,16 @@ for filename in listdir("E:/Image Tracking/videos/"):
             #Here we try and do some calculations to only save contours that include the boomerang
             for c in contours:
                 M = cv.moments(c)
+                # goodcontours.append(c)
 
                 #This checks to see if the area of the contour is above a certain amount, helps reduce the noise
                 #or not boomerang stuff that makes it through all the earlier image processing
-                if M['m00'] > 120:
+                if M['m00'] > 30:
                     x, y, w, h = cv.boundingRect(c)
 
                     #Checks to see if the width and height of the contour are within an acceptable range before
                     #accepting it. Can be tweaked as well
-                    if w < 50 and h < 60:
+                    if w < 30 and h < 30:
                         goodcontours.append(c)
 
                         #Compute the cetner of the contour with the moments, and then store those to the centers
@@ -218,6 +221,7 @@ for filename in listdir("E:/Image Tracking/videos/"):
                 break
 
         normalizedcenters = []   
+        normalizedcenters = []   
 
         #Initialize the origin for the data to be the first contour drawn (typically where the boomerang was thrown from)
         droneLocation = (int(droneLocation[0]), int(droneLocation[1]))
@@ -228,7 +232,12 @@ for filename in listdir("E:/Image Tracking/videos/"):
         print("Drone Location:")
         print(droneLocation)
 
-        file = filename.split(".")
+        # #Open a csv file in the results folder and write the data to the file, which has the same name as the video
+        # with open(f'results/{filename}.csv', 'w') as the_file:
+        #     writer = csv.writer(the_file)
+        #     for row in normalizedcenters:
+        #         writer.writerow(row)
+        #     the_file.flush()
 
         with open(f'old results/UWB/{file[0] + "." + file[1] + ".txt"}') as file:
             lines = file.readlines()
